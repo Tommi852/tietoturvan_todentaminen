@@ -140,9 +140,35 @@ Shellin syöttäminen onnistuikin mutkittomasti ja Armitagessa kohdekoneen kuvak
 
 Nyt voimme kirjautua palvelimelle luodun meterpreter shellin kautta. Tämä onnistuu Armitagella klikkaamalla oikealla punaisena olevaa kohde konetta ja navigoimalla valikossa meterpreter1>Interact>Meterpreter Shell.  
 Näin tehtyämme Armitagee aukeaa uusi "Meterpreter 1" niminen välilehti, jolla pystymme syöttämään komentoja kohde koneelle.  
+Käytettävissä olevat meterpreter shell komennot näkee komennolla: "help".
 
 
+### Oikeuksien nosto
+Saimme yhteyden palvelimeen ja nyt pitää tarkistaa mitä oikeuksia meillä on ja miten saisimme nostettua ne root tasolle, jotta voimme tehdä mitä vain haluamme.  
+Root oikeuksien saaminen on usein erittäin monimutkaista ja vaatii paljon luovaa ajattelua. Tässä kohteessa käytämme kuitenkin melko yksinkertaisia tekniikoita.  
+Aluksi tarkistin millä oikeuksilla olen palvelimessa sisällä komennolla: "getuid".
+
+(kuva getuid)
 
 
+Tämän jälkeen tarkistin unix-privesc-checkillä, että onko pavelimella jotain millä voisin korottaa oikeuteni. Kyseisen tarkistus scriptin löytää osoitteesta: http://pentestmonkey.net/tools/audit/unix-privesc-check  
+Tarkistus scriptin lähettäminen tuotti hieman tuskaa, sillä shellillä ei ollut käyttöoikeuksia suurimpaan osaan kansioista. Onneksi kuitenkin /tmp/ kansiossa on lähes aina käyttöoikeudet ja sain lähetettyä scriptin sinne meterpreter shell komennolla: upload /root/unix-privesc-check  
+Nyt scripti oli saatu kohteeseen, mutta scriptille piti antaa vielä suoritusoikeudet.  
+Tätä varten avasin Interact valikon kautta command shellin, jonka kautta navigoin tuonne /tmp kansioon ja annoin unix-privesc-checkille suoritus oikeudet komennolla: chmod +755 unix-privesc-check  
+Nyt scriptillä on ajo oikeudet ja voin ajaa sen kohteessa. Koska scripti tuottaa paljon tekstiä, niin päätin ohjata sen tuottamat tulokset suoraan output.txt tiedostoon, jonka voisin ladata ja tutkailla kaikessa rauhassa. Tämä onnistui komennolla: bash unix-privesc-check standard > output.txt
+Tiedoston lataaminen palvelimelta onnistui yksinkertaisesti Armitagella Meterpreter shellin kautta "Browse files" ominaisuudella, joka löytyy kohdetta oikea klikkaamalla.  
+
+(kuva output ladattu)  
+
+Tiedosto ei paljastanut mitään helppoja tiedostoja, joiden kautta käyttäjäoikeudet olisi voinut nostaa.  
+Hetken tutkiskeltuani muistin ylimääräisen portin joka oli auki. Portti 21, jossa oli taustalla ProFTPD. Tarkistin olisiko siihen jonkinlaista exploittia olemassa.  
+Juuri sopivasti kyseiseen ProFTPD 1.3.3c versioon löytyikin exploitti, jolla sai yhteyden muodostettua. Kokeilin siis yhteyttä kyseisellä exploitilla, jos sillä olisi paremmat oikeudet, kuin WordPressistä luodulla shellillä.  
+Yhteys onnistuikin "proftpd_133c_backdoor" exploitilla ja yllätyksekseni ProFTPD:llä olikin Root oikeudet. Olin siis nyt päässyt roottina sisään.  
+
+(kuva root saavutettu)
+  
+Tästä käykin ilmi, että joskus tunkeutumistestauksessa tulee tutkittua väärää paikkaa ja siihen kuluu paljon aikaa. Lopulta jostain yleensä kuitenkin löytyy se heikkolenkki, jonka kautta saadaan täydet oikeudet kohteeseen.  
+
+Kiitos.
 
 
